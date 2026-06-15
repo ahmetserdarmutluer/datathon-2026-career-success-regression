@@ -127,7 +127,17 @@ def text_signal(tr):
         oof[va] = Ridge(alpha=2.0).fit(M[trn], y[trn]).predict(M[va])
     r2 = 1 - mean_squared_error(y, oof) / y.var()
     print(f"    text-only Ridge(TF-IDF) OOF R^2 = {r2:.3f}  (real but mostly redundant with tabular)")
-
+    ridge_full = Ridge(alpha=2.0).fit(M, y)
+    coef = pd.Series(ridge_full.coef_, index=tfidf.get_feature_names_out())
+    top_pos = coef.nlargest(15)
+    top_neg = coef.nsmallest(15).iloc[::-1]
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    top_pos.plot.barh(ax=axes[0], color="#2ecc71")
+    axes[0].set(title="Top-15 terms → high score", xlabel="Ridge coefficient")
+    top_neg.plot.barh(ax=axes[1], color="#e74c3c")
+    axes[1].set(title="Top-15 terms → low score", xlabel="Ridge coefficient")
+    fig.suptitle(f"Mentor-feedback TF-IDF signal  (text-only OOF R²={r2:.3f})", fontsize=11)
+    _save(fig, "05_text_signal.png")
 
 def distribution_shift(tr, te):
     print("\n[6] DISTRIBUTION SHIFT (train vs test)")
