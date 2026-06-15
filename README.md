@@ -68,6 +68,22 @@ no signal — which directly shaped the importance-weighted feature engineering.
 ![Top correlations with the target](figures/03_correlation.png)
 ![Permutation feature importance](figures/04_importance.png)
 
+**Mentor-feedback text signal.** The free-text `mentor_feedback_text` column
+(Turkish, ~274 chars on average) was evaluated in isolation using a TF-IDF
+vectoriser (unigrams + bigrams, 20 k features) paired with a Ridge regression
+meta-learner in a 5-fold cross-validation. The text alone explains **36 % of
+target variance** (OOF R² = 0.358), confirming that the mentor's wording carries
+real predictive information beyond the numeric and categorical predictors.
+The figure below shows the 15 TF-IDF terms with the largest positive Ridge
+coefficients (associated with *higher* career-success scores, shown in green) and
+the 15 with the most negative coefficients (associated with *lower* scores, shown
+in red). Phrases related to leadership, strong technical proficiency, and proactive
+attitude cluster on the positive side, while terms indicating limited experience or
+concerns about performance appear on the negative side — a pattern that directly
+informed the text-feature engineering strategy.
+
+![Mentor-feedback TF-IDF signal](figures/05_text_signal.png)
+
 ---
 
 ## 3. Repository layout
