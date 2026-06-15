@@ -55,15 +55,15 @@ offline objective is weighted by the per-year test/train density ratio.
 
 **Informative missingness.** Missingness is concentrated in a few
 profile/interview columns and correlates with a *lower* target — i.e. the act
-of a value being missing is itself predictive, so missing-indicators are kept
+of a value being missing is itself predictive, so missing indicators are kept
 as features rather than silently imputed away.
 
 ![Missing-value rate by column](figures/02_missingness.png)
 
-**Signal ranking.** Linear correlation and (non-linear) permutation importance
+**Signal ranking.** Linear correlation and (non linear) permutation importance
 agree that `project_quality_score` dominates, followed by the interview and
 communication scores; classic academic metrics (cgpa, attendance) carry almost
-no signal — which directly shaped the importance-weighted feature engineering.
+no signal; which directly shaped the importance weighted feature engineering.
 
 ![Top correlations with the target](figures/03_correlation.png)
 ![Permutation feature importance](figures/04_importance.png)
@@ -71,16 +71,16 @@ no signal — which directly shaped the importance-weighted feature engineering.
 **Mentor-feedback text signal.** The free-text `mentor_feedback_text` column
 (Turkish, ~274 chars on average) was evaluated in isolation using a TF-IDF
 vectoriser (unigrams + bigrams, 20 k features) paired with a Ridge regression
-meta-learner in a 5-fold cross-validation. The text alone explains **36 % of
+meta learner in a 5 fold cross validation. The text alone explains **36 % of
 target variance** (OOF R² = 0.358), confirming that the mentor's wording carries
 real predictive information beyond the numeric and categorical predictors.
 The figure below shows the 15 TF-IDF terms with the largest positive Ridge
-coefficients (associated with *higher* career-success scores, shown in green) and
+coefficients (associated with *higher* career success scores, shown in green) and
 the 15 with the most negative coefficients (associated with *lower* scores, shown
 in red). Phrases related to leadership, strong technical proficiency, and proactive
 attitude cluster on the positive side, while terms indicating limited experience or
-concerns about performance appear on the negative side — a pattern that directly
-informed the text-feature engineering strategy.
+concerns about performance appear on the negative side; a pattern that directly
+informed the text feature engineering strategy.
 
 ![Mentor-feedback TF-IDF signal](figures/05_text_signal.png)
 
@@ -137,44 +137,44 @@ same code path serves a 5-minute sanity check and the full run.
 
 ### 5.1 Core pipeline (`train.py`)
 
-1. **Feature engineering** — domain aggregates (academic/technical/interview
-   strength), role-conditional skill alignment, efficiency ratios, curated and
-   automated interactions, missing-value indicators, ordinal/frequency/
+1. **Feature engineering** : domain aggregates (academic/technical/interview
+   strength), role conditional skill alignment, efficiency ratios, curated and
+   automated interactions, missing value indicators, ordinal/frequency/
    **leakage-safe nested target encoding** of categoricals.
-2. **Text features** — TF-IDF (word 1–3 grams + character n-grams, suited to
+2. **Text features** : TF-IDF (word 1–3 grams + character n-grams, suited to
    agglutinative Turkish) reduced by Truncated SVD, multilingual sentence
    embeddings reduced by PCA, lexicon/shape statistics, and nested
-   meta-model predictions that compress the text into a few strong columns.
-3. **Six base models** — CatBoost, LightGBM, XGBoost, ExtraTrees,
-   HistGradientBoosting, and a torch MLP with categorical embeddings — each
-   tuned with Optuna and given a model-appropriate missing-value strategy
+   meta model predictions that compress the text into a few strong columns.
+3. **Six base models** : CatBoost, LightGBM, XGBoost, ExtraTrees,
+   HistGradientBoosting, and a torch MLP with categorical embeddings; each
+   tuned with Optuna and given a model appropriate missing value strategy
    (native NaN handling for the trees; imputation for the others).
-4. **Distribution-shift correction** — all metrics, the HPO objective, and the
+4. **Distribution-shift correction** : all metrics, the HPO objective, and the
    stacker optimise a **year-weighted MSE**: each row is weighted by the
    density ratio `P_test(year) / P_train(year)`. This made the offline score a
    faithful proxy for the leaderboard (validated to ±0.15).
-5. **Stacking with an honest referee** — base out-of-fold predictions are
+5. **Stacking with an honest referee** : base out of fold predictions are
    combined by a Ridge / convex-blend / shallow-CatBoost meta-model; the choice
    is made by **repeated CV *over the OOF rows***, never in-sample, so the most
    flexible combiner cannot win by overfitting.
 
 ### 5.2 Advanced techniques (`advanced/`)
 
-Each was kept only after a **paired test on fresh, held-out folds** confirmed a
+Each was kept only after a **paired test on fresh, held out folds** confirmed a
 statistically significant gain. Their measured contributions:
 
 | Technique | Idea | Effect |
 |---|---|---|
-| **Two-part (hurdle) model** | predict `(1−p)·E[y\|y<100] + p·100`, with an isotonically-calibrated censoring classifier `p` | handles the spike at 100 that single-loss regression bends toward |
+| **Two-part (hurdle) model** | predict `(1−p)·E[y\|y<100] + p·100`, with an isotonically-calibrated censoring classifier `p` | handles the spike at 100 that single loss regression bends toward |
 | **TabPFN column** | a transformer pre-trained on synthetic tabular data, added as a decorrelated ensemble member | **largest single gain** (LB −0.5); over-delivered on the private split |
-| **Fine-tuned BERTurk** | a Turkish BERT regression head on the mentor text | text-only R² 0.36→0.57; small but real in the stack |
-| **Model-specific feature pruning** | top-K permutation-ranked features | helps noise-sensitive models (NN −1.9 MSE) but **not** robust GBDTs |
+| **Fine tuned BERTurk** | a Turkish BERT regression head on the mentor text | text only R² 0.36→0.57; small but real in the stack |
+| **Model specific feature pruning** | top-K permutation ranked features | helps noise sensitive models (NN −1.9 MSE) but **not** robust GBDTs |
 
 ### 5.3 What did *not* work (recorded honestly)
 
-Importance-weighted base training, blanket column deletion, pseudo-labeling,
+Importance weighted base training, blanket column deletion, pseudo-labeling,
 naive top-K feature selection for GBDTs, additional TabPFN/NN ensemble members,
-and FT-Transformer were each tried and **rejected by the referee** — a
+and FT-Transformer were each tried and **rejected by the referee** : a
 flexible model can memorise the training set (in-sample R² 0.996) yet generalise
 to only R² ≈ 0.68, so the remaining error is largely irreducible label noise
 (near-identical students differ by ~13 points). Every model family contributes
@@ -187,33 +187,33 @@ exactly **one** useful stack column.
 | Stage | Public MSE | Private MSE |
 |---|---|---|
 | Plain unweighted ensemble | 84.88 | 84.98 |
-| + two-part + year-weighting | 84.09 | 84.93 |
-| + noise-column removal | 83.96 | 84.87 |
-| + TabPFN + fine-tuned BERT | 82.89 | 84.20 → |
-| **+ feature-pruned NN (final)** | **82.89** | **83.75** |
+| + two part + year weighting | 84.09 | 84.93 |
+| + noise column removal | 83.96 | 84.87 |
+| + TabPFN + fine tuned BERT | 82.89 | 84.20 → |
+| **+ feature pruned NN (final)** | **82.89** | **83.75** |
 
-The best public submission is also the best private one: the year-weighted,
-honestly-validated optimisation transferred faithfully to the hidden split
+The best public submission is also the best private one: the year weighted,
+honestly validated optimisation transferred faithfully to the hidden split
 (private ≈ public + ~0.85, a stable offset with the ranking preserved).
 
-**Model comparison (RMSE).** All six base models were evaluated under 5-fold
-cross-validation with year-weighted MSE. The chart ranks them by out-of-fold
+**Model comparison (RMSE).** All six base models were evaluated under a 5 fold
+cross validation with year-weighted MSE. The chart ranks them by out of fold
 RMSE, making it straightforward to see which families contribute unique signal
 and which are redundant before stacking.
 
 ![Model RMSE comparison across base learners](figures/07_model_comparison.png)
 
-**Cross-validation stability.** The heatmap shows each model's fold-level RMSE,
+**Cross validation stability.** The heatmap shows each model's fold level RMSE,
 revealing whether a model's average performance is driven by one lucky fold or
 is genuinely consistent across the five splits. Stable models (low row variance)
 are preferred stack members.
 
 ![CV fold-level RMSE heatmap](figures/08_cv_heatmap.png)
 
-**Best model: OOF predictions vs actuals.** The scatter plot of out-of-fold
-predictions against ground-truth scores for the best single model illustrates
-where residual error concentrates — particularly near the censoring boundary
-at 100, motivating the two-part hurdle model described in §5.2.
+**Best model: OOF predictions vs actuals.** The scatter plot of out of fold
+predictions against ground truth scores for the best single model illustrates
+where residual error concentrates; particularly near the censoring boundary
+at 100, motivating the two part hurdle model described in §5.2.
 
 ![Best model OOF predictions vs actuals](figures/09_best_model_oof.png)
 
@@ -221,17 +221,17 @@ at 100, motivating the two-part hurdle model described in §5.2.
 
 ## 7. Engineering principles
 
-- **Honest validation above all** — every decision is gated by an out-of-fold,
-  shift-weighted, paired-significance test; nothing ships on an in-sample gain.
-- **Reproducibility** — a single random seed drives folds, models, the Optuna
+- **Honest validation above all** : every decision is gated by an out of fold,
+  shift-weighted, paired significance test; nothing ships on an in sample gain.
+- **Reproducibility** : a single random seed drives folds, models, the Optuna
   sampler, and torch; `inference.py` reproduces the submission from saved
   artifacts.
-- **Diagnose before modelling** — censoring, shift, and the noise floor were
+- **Diagnose before modelling** : censoring, shift, and the noise floor were
   measured first and each mapped to a specific technique.
 
 ## 8. Honest limitations
 
-The generalisable-signal ceiling for these features is R² ≈ 0.68; the solution
+The generalisable signal ceiling for these features is R² ≈ 0.68; the solution
 sits at ~0.69. Reaching the very top of the leaderboard would require signal
 outside the provided features (e.g. an insight into the synthetic data-
 generating process), not additional modelling on the given inputs.
