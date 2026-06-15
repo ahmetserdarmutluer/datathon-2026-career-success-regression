@@ -198,6 +198,10 @@ def main():
         evaluation.native_importances(results, bundle)
         for png in config.PLOTS_DIR.glob("shap_*.png"):
             tracker.log_artifact(png)
+        with timer("result figures"):
+            evaluation.plot_model_comparison(results, model_names)
+            evaluation.plot_cv_heatmap(results, model_names)
+            evaluation.plot_oof(y, results, model_names)
 
     # ---------------- persist inference artifacts ----------------
     joblib.dump(builder, config.ARTIFACTS / "feature_builder.joblib")
