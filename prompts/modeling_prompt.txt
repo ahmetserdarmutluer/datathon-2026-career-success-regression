@@ -1,0 +1,352 @@
+You are a Principal Machine Learning Engineer, Kaggle Grandmaster, and Applied AI Research Scientist.
+
+Your task is to design and implement a production-quality machine learning pipeline that predicts a continuous target variable called career_success_score from a tabular dataset containing:
+
+Numerical features
+Categorical features
+Missing values
+Free-text mentor feedback (mentor_feedback_text)
+Mixed feature scales
+Potential feature interactions
+The objective is to minimize Mean Squared Error (MSE) on an unseen test set. The implementation must prioritize predictive performance over simplicity.
+
+Dataset Description
+The training dataset contains career_success_score as the regression target. The test dataset contains all predictor variables except the target.
+
+Feature Groups
+Academic Features
+cgpa, attendance_rate, english_exam_score, failed_courses_count, university_tier, department
+
+Technical Skills
+coding_score, problem_solving_score, data_structures_score, sql_score, machine_learning_score, backend_score, frontend_score, cloud_score, devops_score
+
+Experience Features
+internship_count, internship_duration_months, freelance_project_count, project_quality_score, real_client_project_count
+
+Portfolio Features
+github_repo_count, github_avg_stars, open_source_contribution_count, linkedin_profile_score, cv_quality_score, portfolio_score
+
+Interview Features
+technical_interview_score, hr_interview_score
+
+Soft Skills
+communication_score, teamwork_score, leadership_score, presentation_score
+
+Professional Development
+certification_count, bootcamp_count
+
+Job Search Activity
+applications_sent, interviews_attended
+
+Categorical Features
+department, university_tier, target_role, hobby, preferred_social_media_platform
+
+Text Feature
+mentor_feedback_text
+
+Feature Importance Prior
+The following importance scores are derived from exploratory analysis and must directly govern feature engineering design, interaction generation, and composite weighting. Do not treat all features equally.
+
+
+column_importance = {
+    "project_quality_score":          0.80,
+    "technical_interview_score":      0.45,
+    "problem_solving_score":          0.22,
+    "communication_score":            0.18,
+    "cloud_score":                    0.17,
+    "devops_score":                   0.15,
+    "github_repo_count":              0.14,
+    "portfolio_score":                0.12,
+    "backend_score":                  0.11,
+    "coding_score":                   0.10,
+    "real_client_project_count":      0.09,
+    "open_source_contribution_count": 0.09,
+    "frontend_score":                 0.08,
+    "data_structures_score":          0.07,
+    "application_year":               0.06,
+    "sql_score":                      0.06,
+    "github_avg_stars":               0.05,
+    "graduation_year":                0.04,
+    "target_role":                    0.04,
+    "machine_learning_score":         0.03,
+    "cv_quality_score":               0.02,
+    "linkedin_profile_score":         0.02,
+    "teamwork_score":                 0.02,
+    "freelance_project_count":        0.01,
+    "cgpa":                           0.01,
+}
+Use this prior to:
+
+Weight composite features proportionally instead of using uniform means
+Restrict interaction generation to features with importance ≥ 0.05
+Deprioritize cgpa (0.01) — do not use it as a multiplier in any composite
+Apply polynomial expansion to the two dominant features: project_quality_score and technical_interview_score
+Keep low-signal features (cgpa, teamwork_score, cv_quality_score, linkedin_profile_score, freelance_project_count) as passive inputs only — do not amplify them via interactions or composite products
+Data Processing Requirements
+Missing Values
+Automatically handle missing values using model-specific strategies:
+
+CatBoost: allow native missing value handling
+LightGBM / XGBoost: create missing indicators, apply median imputation, and optionally experiment with KNN imputation; compare approaches
+Mixed Feature Scales — Handling Strategy
+The feature set spans three distinct scale regimes. Apply the following normalization rules:
+
+Regime	Features	Strategy
+Dominant (0.45–0.80)	project_quality_score, technical_interview_score	Polynomial expansion degree 2, preserve raw values
+Mid-range (0.05–0.22)	problem_solving_score, cloud_score, devops_score, github_repo_count, portfolio_score, backend_score, coding_score, communication_score	log1p for count features, standardize scores
+Low-signal (0.01–0.04)	cgpa, cv_quality_score, linkedin_profile_score, teamwork_score, freelance_project_count	Include as passive inputs; do not amplify via interactions or composites
+
+# Count features: apply log1p before any aggregation
+log_github_repos  = np.log1p(github_repo_count)
+log_open_source   = np.log1p(open_source_contribution_count)
+log_internships   = np.log1p(internship_duration_months)
+
+# Dominant features: add rank-based alternatives for outlier robustness
+project_quality_rank  = rankdata(project_quality_score) / len(project_quality_score)
+tech_interview_rank   = rankdata(technical_interview_score) / len(technical_interview_score)
+
+# Polynomial expansion for dominant features
+project_quality_sq    = project_quality_score ** 2
+tech_interview_sq     = technical_interview_score ** 2
+Scale-aware ensemble inputs:
+
+Tree models (CatBoost, LightGBM, XGBoost): use raw and engineered features — scale-invariant
+Linear meta-learner (Ridge stacker): pass StandardScaler-transformed OOF predictions only
+Neural models (FT-Transformer): StandardScaler on all numeric inputs before feeding
+Feature Engineering
+All aggregate features must use importance-weighted formulas rather than uniform means. Uniform means average out the dominant signal from project_quality_score and dilute predictive power.
+
+Project Excellence (Highest Priority — importance: 0.80)
+project_quality_score is the single dominant predictor, explaining approximately 4× more variance than the third-ranked feature. Engineer all multiplicative and additive expansions from it:
+
+
+project_excellence_depth    = project_quality_score * real_client_project_count
+project_excellence_breadth  = project_quality_score * open_source_contribution_count
+project_excellence_freelance = project_quality_score * freelance_project_count
+project_excellence_combined = (
+    project_quality_score
+    * np.log1p(real_client_project_count + freelance_project_count + open_source_contribution_count)
+)
+project_quality_sq          = project_quality_score ** 2
+Interview Readiness (Anchored on technical_interview_score: 0.45)
+technical_interview_score is the second anchor. Weight it heavily relative to soft signals:
+
+
+interview_strength = (
+    0.55 * technical_interview_score
+  + 0.25 * communication_score
+  + 0.12 * problem_solving_score
+  + 0.08 * presentation_score
+)
+interview_communication_synergy = technical_interview_score * communication_score
+interview_problem_synergy       = technical_interview_score * problem_solving_score
+tech_interview_sq               = technical_interview_score ** 2
+Cloud / DevOps Strength (cloud: 0.17, devops: 0.15, backend: 0.11)
+Modern infrastructure skills outrank traditional academic metrics. Create a dedicated composite:
+
+
+cloud_devops_strength = (
+    0.40 * cloud_score
+  + 0.35 * devops_score
+  + 0.25 * backend_score
+)
+infra_stack_score = cloud_score * devops_score
+full_stack_score  = backend_score * frontend_score
+Technical Strength (Importance-Weighted)
+Use an importance-weighted aggregate. Do not assign equal weight to machine_learning_score (0.03) and problem_solving_score (0.22):
+
+
+technical_strength = (
+    0.32 * problem_solving_score
+  + 0.24 * coding_score
+  + 0.20 * data_structures_score
+  + 0.14 * sql_score
+  + 0.10 * machine_learning_score
+)
+Portfolio Strength (github: 0.14, portfolio: 0.12, open_source: 0.09)
+Exclude linkedin_profile_score (0.02) from the primary composite or assign minimal weight. Do not mix it equally with github_repo_count:
+
+
+github_star_density   = github_avg_stars / np.log1p(github_repo_count)
+portfolio_depth       = portfolio_score * open_source_contribution_count
+portfolio_github_sync = portfolio_score * np.log1p(github_repo_count)
+portfolio_strength    = (
+    0.35 * portfolio_score
+  + 0.30 * np.log1p(github_repo_count)
+  + 0.25 * open_source_contribution_count
+  + 0.10 * github_avg_stars
+)
+Academic Aggregates (Deprioritized — cgpa: 0.01)
+cgpa has near-zero importance. Do not use it as a multiplier. Replace the original cgpa * attendance_rate formulation:
+
+
+# Do NOT compute: academic_strength = cgpa * attendance_rate
+# Use instead:
+academic_strength = (
+    0.70 * attendance_rate
+  + 0.20 * english_exam_score
+  + 0.10 * cgpa
+)
+Experience Strength
+
+experience_depth    = internship_duration_months * project_quality_score
+experience_breadth  = np.log1p(internship_count + freelance_project_count + real_client_project_count)
+experience_strength = (
+    0.50 * project_quality_score
+  + 0.25 * np.log1p(internship_duration_months)
+  + 0.15 * real_client_project_count
+  + 0.10 * freelance_project_count
+)
+Interaction Features (Importance-Guided)
+Generate interactions only between features with importance ≥ 0.05 to avoid noise amplification from low-signal features. Generating all C(37,2)=666 pairwise interactions from the full feature set adds noise; restricting to the top 12 features gives 66 targeted interactions with expected positive mutual information.
+
+
+TOP_FEATURES_FOR_INTERACTION = [
+    "project_quality_score",          # 0.80
+    "technical_interview_score",      # 0.45
+    "problem_solving_score",          # 0.22
+    "communication_score",            # 0.18
+    "cloud_score",                    # 0.17
+    "devops_score",                   # 0.15
+    "github_repo_count",              # 0.14
+    "portfolio_score",                # 0.12
+    "backend_score",                  # 0.11
+    "coding_score",                   # 0.10
+    "real_client_project_count",      # 0.09
+    "open_source_contribution_count", # 0.09
+]
+# Generate all pairwise products from this set: C(12,2) = 66 interaction terms
+# Use SelectFromModel or mutual_info_regression to prune to top-N before final training
+Tier 1 — Top Feature Cross-Products (unconditional, always include):
+
+
+project_x_interview    = project_quality_score * technical_interview_score
+project_x_problemsolve = project_quality_score * problem_solving_score
+project_x_cloud        = project_quality_score * cloud_score
+project_x_github       = project_quality_score * np.log1p(github_repo_count)
+Tier 2 — Technical × Portfolio:
+
+
+tech_portfolio_synergy  = technical_strength * portfolio_strength
+coding_x_github         = coding_score * np.log1p(github_repo_count)
+problem_x_portfolio     = problem_solving_score * portfolio_score
+open_source_x_problem   = open_source_contribution_count * problem_solving_score
+Tier 3 — Interview × Communication and Infrastructure:
+
+
+interview_x_communication = technical_interview_score * communication_score
+cloud_x_devops            = cloud_score * devops_score
+backend_x_cloud           = backend_score * cloud_score
+Tier 4 — Experience × Technical:
+
+
+experience_x_technical    = experience_strength * technical_strength
+internship_x_interview    = internship_duration_months * technical_interview_score
+Text Feature Engineering
+The mentor feedback text is expected to contain substantial predictive signal. Implement all three approaches and compare their contribution via cross-validation.
+
+Approach 1 — TF-IDF:
+
+
+TfidfVectorizer(ngram_range=(1, 3), max_features=5000)
+Approach 2 — Sentence Embeddings:
+
+Use intfloat/multilingual-e5-large or sentence-transformers/paraphrase-multilingual-mpnet-base-v2 to generate dense embeddings.
+
+Approach 3 — Modern Embedding Models:
+
+Experiment with BGE, E5, and Instructor XL. Compare cross-validation performance across all three.
+
+Dimensionality Reduction:
+
+Apply TruncatedSVD or PCA to all embeddings. Retain the optimal number of dimensions determined via cross-validation.
+
+Categorical Encoding
+Compare the following strategies:
+
+CatBoost Native Encoding — preferred; handles categoricals and missing values natively
+Nested CV Target Encoding — leakage-safe implementation within cross-validation folds
+Frequency Encoding — compare against target encoding as a baseline
+Models To Train
+Train all of the following models:
+
+Model	Notes
+CatBoost Regressor	Primary model. Handles missing values and categoricals natively. Strong on tabular data.
+LightGBM Regressor	Fast, memory-efficient gradient boosting
+XGBoost Regressor	Strong regularization, GPU acceleration
+Extra Trees Regressor	High variance, low bias — diversifies ensemble
+HistGradientBoosting Regressor	Sklearn native, fast on large datasets
+TabM / FT-Transformer / TabTransformer	If available; captures feature interactions via attention
+Hyperparameter Optimization
+Use Optuna with a minimum of n_trials = 200 per model. Optimize cross-validation MSE using 5-fold stratified regression via target binning.
+
+Add importance-aware search dimensions to every trial:
+
+
+"use_project_quality_poly": trial.suggest_categorical("use_project_quality_poly", [True, False]),
+"interaction_tier_cutoff":  trial.suggest_float("interaction_cutoff_importance", 0.05, 0.15),
+"top_k_interactions":       trial.suggest_int("top_k_interactions", 20, 66),
+
+# For each trial, rebuild the feature set dynamically:
+# - Always include Tier 1 interactions (unconditional)
+# - Include Tier 2–4 based on the sampled threshold
+Validation Strategy
+Use Repeated KFold or 5-Fold cross-validation. Store per fold:
+
+Fold MSE
+Fold RMSE
+Fold MAE
+OOF predictions
+Ensemble Strategy
+Level 1
+Train base models: CatBoost, LightGBM, XGBoost, ExtraTrees, HistGB.
+
+Level 2 — Weighted Blending
+Search for optimal blend weights via Optuna or scipy minimize:
+
+
+prediction = (
+    w1 * catboost
+  + w2 * lightgbm
+  + w3 * xgboost
+  + w4 * extratrees
+  + w5 * histgb
+)
+# subject to: sum(weights) = 1, all weights > 0
+Level 3 — Stacking
+Train a meta-model (Ridge or CatBoost) on OOF predictions from all Level 1 models. Compare stacking MSE against blending MSE and select the better approach for final submission.
+
+Explainability
+Generate:
+
+SHAP Analysis — global feature importance across all major models
+SHAP Waterfall Plots — local explanations for individual predictions
+Feature Importance Rankings — for all major models, with importance scores aligned against the column_importance prior above
+Experiment Tracking
+Use MLflow to track parameters, metrics, artifacts, and feature sets for every trial and model.
+
+Required Output Files
+File	Contents
+train.py	Full training pipeline
+inference.py	Test prediction pipeline
+config.py	Central configuration including column_importance dict
+feature_engineering.py	All engineered features including importance-weighted composites
+text_features.py	Embedding and TF-IDF logic
+model_training.py	All model training code
+ensemble.py	Stacking and blending
+evaluation.py	Cross-validation metrics
+utils.py	Utilities
+submission.csv	Final predictions: student_id, career_success_score
+Final Goal
+Design the strongest possible regression solution focused on leaderboard-level performance. Prioritize:
+
+Lowest cross-validation MSE
+Generalization to unseen data
+Robust handling of missing values
+Maximum exploitation of project_quality_score — the dominant predictor — through polynomial expansion, multiplicative interactions, and all composite features it anchors
+Maximum exploitation of mentor feedback text
+Strong ensemble performance combining blending and stacking
+Reproducibility through fixed random seeds and deterministic execution
+Clean modular code structure
+GPU acceleration where available
+Provide a detailed explanation for every design decision, including why each model, feature engineering step, encoding strategy, interaction, composite weight, and ensemble method was selected.

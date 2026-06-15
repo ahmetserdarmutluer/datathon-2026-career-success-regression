@@ -1,0 +1,553 @@
+Kariyer Başarı Skoru Tahmin Veri Seti için Kapsamlı EDA ve Feature Analizi Yapan Oldukça Deneyimli Bir Veri Bilimcisisin.
+
+Elinde "train.csv" isimli bir veri seti bulunmaktadır.
+
+Veri Seti Hakkında
+
+Hedef değişken (target):
+
+career_success_score
+
+Bu değişken öğrencinin kariyer başarısını temsil etmektedir ve regresyon problemi olarak ele alınacaktır.
+
+Sütunlar
+
+student_id
+
+application_year
+
+age
+
+graduation_year
+
+department
+
+university_tier
+
+cgpa
+
+english_exam_score
+
+attendance_rate
+
+failed_courses_count
+
+target_role
+
+coding_score
+
+problem_solving_score
+
+data_structures_score
+
+sql_score
+
+machine_learning_score
+
+backend_score
+
+frontend_score
+
+cloud_score
+
+devops_score
+
+project_quality_score
+
+real_client_project_count
+
+internship_count
+
+internship_duration_months
+
+freelance_project_count
+
+hackathon_count
+
+hackathon_awards
+
+portfolio_score
+
+github_repo_count
+
+github_avg_stars
+
+open_source_contribution_count
+
+linkedin_profile_score
+
+cv_quality_score
+
+technical_interview_score
+
+hr_interview_score
+
+communication_score
+
+teamwork_score
+
+leadership_score
+
+presentation_score
+
+certification_count
+
+bootcamp_count
+
+applications_sent
+
+interviews_attended
+
+hobby
+
+preferred_social_media_platform
+
+mentor_feedback_text
+
+career_success_score
+
+Görev
+
+Bu veri seti için Senior Data Scientist seviyesinde son derece detaylı bir Exploratory Data Analysis (EDA) gerçekleştir.
+
+Analizi aşağıdaki sırayla yap.
+
+1. Veri Seti Genel İncelemesi
+
+Öncelikle:
+
+Veri setinin boyutunu göster
+Satır ve sütun sayılarını ver
+Her sütunun veri tipini incele
+Numerik, kategorik ve metinsel değişkenleri sınıflandır
+Hedef değişkeni tanıt
+
+Tablo halinde özet sun.
+
+2. Veri Kalitesi Analizi
+
+Aşağıdakileri detaylı incele:
+
+Eksik Veriler
+
+Her sütun için:
+
+Eksik değer sayısı
+Eksik değer oranı (%)
+
+Eksik veri görselleştirmeleri üret:
+
+Missing value heatmap
+Missing percentage chart
+
+Eksik veri stratejileri öner:
+
+Silme
+Median
+Mean
+Mode
+KNN Imputation
+Target-guided yöntemler
+Yinelenen Kayıtlar
+Duplicate satır sayısı
+Duplicate oranı
+Tutarsızlık Kontrolü
+
+Örnekler:
+
+graduation_year < application_year ?
+attendance_rate > 100 ?
+cgpa beklenen aralık dışında mı?
+interview sayısı başvuru sayısından fazla mı?
+Negatif değer var mı?
+
+Bulunan tüm anomalileri raporla.
+
+3. Tek Değişkenli Analiz (Univariate Analysis)
+
+Numerik sütunların tamamı için:
+
+Aşağıdaki istatistikleri hesapla:
+
+Count
+Mean
+Median
+Std
+Min
+Max
+Q1
+Q3
+IQR
+Skewness
+Kurtosis
+
+Görselleştir:
+
+Histogram
+KDE
+Boxplot
+
+Her sütun için yorum yap:
+
+Normal dağılıma yakın mı?
+Sağa/sola çarpık mı?
+Aykırı değer içeriyor mu?
+4. Kategorik Değişken Analizi
+
+Aşağıdaki sütunlar için:
+
+department
+
+university_tier
+
+target_role
+
+hobby
+
+preferred_social_media_platform
+
+Yapılacaklar:
+
+Unique değer sayıları
+Frekans tabloları
+Oranlar (%)
+Barplot
+Countplot
+
+Analitik yorum yap.
+
+5. Hedef Değişken Analizi
+
+career_success_score için:
+
+Histogram
+KDE
+Boxplot
+
+Hesapla:
+
+Mean
+Median
+Std
+Skewness
+Kurtosis
+
+Yorumla:
+
+Normal dağılıyor mu?
+Dönüşüm gerekir mi?
+Log dönüşüm gerekli mi?
+6. Korelasyon Analizi
+
+Tüm numerik değişkenler için:
+
+Pearson korelasyon matrisi oluştur.
+
+Üret:
+
+Heatmap
+En yüksek pozitif korelasyonlar
+En yüksek negatif korelasyonlar
+
+Özellikle:
+
+career_success_score ile korelasyonları sırala.
+
+Tablo:
+
+Feature | Correlation with Target
+
+En yüksek katkı yapan değişkenleri belirle.
+
+7. Feature Importance Analizi
+
+Target:
+
+career_success_score
+
+Aşağıdaki yöntemlerle feature importance çıkar:
+
+Yöntem 1
+
+Mutual Information Regression
+
+Yöntem 2
+
+Random Forest Regressor Feature Importance
+
+Yöntem 3
+
+XGBoost Feature Importance
+
+Yöntem 4
+
+Permutation Importance
+
+Yöntem 5
+
+SHAP Values
+
+Her yöntemin sonucunu tablo ve grafik olarak sun.
+
+Sonrasında:
+
+Ortak önemli feature'ları belirle
+Tutarlı feature'ları listele
+8. Kategorik Değişkenlerin Target ile İlişkisi
+
+Aşağıdaki değişkenler için:
+
+department
+
+university_tier
+
+target_role
+
+hobby
+
+preferred_social_media_platform
+
+Analiz et:
+
+Ortalama career_success_score
+Median career_success_score
+Boxplot
+Violin Plot
+
+Yorum yap.
+
+9. Sayısal Değişkenlerin Target ile İlişkisi
+
+Bütün numerik sütunlar için:
+
+career_success_score ile:
+
+Scatter Plot
+Regression Plot
+
+Üret.
+
+Ayrıca:
+
+Pearson Correlation
+Spearman Correlation
+
+hesapla.
+
+Özellikle şu değişkenleri detaylı incele:
+
+cgpa
+
+coding_score
+
+problem_solving_score
+
+project_quality_score
+
+technical_interview_score
+
+communication_score
+
+github_repo_count
+
+github_avg_stars
+
+open_source_contribution_count
+
+internship_count
+
+internship_duration_months
+
+portfolio_score
+
+linkedin_profile_score
+
+cv_quality_score
+
+10. Mentor Feedback Text Analizi
+
+mentor_feedback_text sütunu üzerinde NLP analizi yap.
+
+Aşamalar:
+
+Temizlik
+Lowercase
+Stopword removal
+Lemmatization
+Analizler
+En sık geçen kelimeler
+Word Cloud
+N-gram analizi
+TF-IDF
+Target İlişkisi
+
+Career success yüksek ve düşük öğrencileri karşılaştır.
+
+Belirle:
+
+Başarılı öğrencilerde geçen kelimeler
+Başarısız öğrencilerde geçen kelimeler
+11. Multicollinearity Analizi
+
+Tüm numerik feature'lar için:
+
+VIF (Variance Inflation Factor) hesapla.
+
+Raporla:
+
+VIF > 5
+VIF > 10
+
+olan sütunları belirt.
+
+Feature azaltma öner.
+
+12. Outlier Analizi
+
+Aşağıdaki yöntemlerle:
+
+IQR
+Z-score
+
+Outlier tespiti yap.
+
+Her sütun için:
+
+Outlier sayısı
+Outlier oranı
+
+raporla.
+
+Outlier'ların target üzerindeki etkisini yorumla.
+
+13. Feature Engineering Fırsatları
+
+Yeni oluşturulabilecek değişkenleri öner.
+
+Örnek:
+
+Akademik Güç
+
+academic_strength =
+cgpa + attendance_rate + english_exam_score
+
+Teknik Güç
+
+technical_strength =
+coding_score + problem_solving_score + data_structures_score
+
+Profesyonel Deneyim
+
+experience_score =
+internship_count + freelance_project_count + real_client_project_count
+
+Açık Kaynak Etkisi
+
+opensource_strength =
+github_repo_count + github_avg_stars + open_source_contribution_count
+
+Mülakat Performansı
+
+interview_strength =
+technical_interview_score + hr_interview_score
+
+Bu tarz yeni feature önerileri oluştur ve önemlerini değerlendir.
+
+14. Hedefe Katkı Analizi
+
+Her feature için aşağıdaki tabloyu oluştur:
+
+Feature Name
+
+Data Type
+
+Missing %
+
+Correlation with Target
+
+Mutual Information
+
+RF Importance
+
+XGBoost Importance
+
+SHAP Importance
+
+Expected Business Impact
+
+Risk of Leakage
+
+Keep / Remove Decision
+
+15. Veri Sızıntısı (Data Leakage) Analizi
+
+Özellikle şu sütunları incele:
+
+technical_interview_score
+
+hr_interview_score
+
+interviews_attended
+
+linkedin_profile_score
+
+cv_quality_score
+
+mentor_feedback_text
+
+Bu sütunların target oluşturulurken sonradan elde edilmiş olma ihtimalini değerlendir.
+
+Leakage riski taşıyan sütunları belirt.
+
+16. Nihai Sonuç
+
+En sonunda aşağıdaki bölümleri oluştur:
+
+En Güçlü 20 Feature
+
+Sıralı liste
+
+Orta Derecede Faydalı Feature'lar
+
+Sıralı liste
+
+Zayıf Feature'lar
+
+Sıralı liste
+
+Silinmesi Önerilen Feature'lar
+
+Gerekçeleriyle
+
+Potansiyel Leakage Feature'ları
+
+Gerekçeleriyle
+
+Modelleme İçin Nihai Feature Seti
+
+Önerilen sütunlar
+
+Yönetici Özeti
+
+5-10 maddede veri setinin en önemli içgörüleri.
+
+Kod üretirken:
+
+Python kullan
+Pandas
+NumPy
+Matplotlib
+Seaborn
+Scikit-Learn
+XGBoost
+SHAP
+
+kütüphanelerini kullan.
+
+Her analizden sonra kısa ama teknik yorumlar üret.
+
+Grafikleri yüksek çözünürlükte ve profesyonel görünümde hazırla.
+
+Sonuçları mümkün olduğunca tablo halinde sun.
+
+Görsel analizleri bir figures adinda bir klasor olusturup kopyala.
