@@ -1,4 +1,4 @@
-# Career Success Score — A Regression Pipeline for Censored, Shifted Tabular + Text Data
+# Career Success Score: A Regression Pipeline for Censored, Shifted Tabular + Text Data
 
 End-to-end machine-learning solution for predicting a continuous
 `career_success_score` (bounded 0–100) from mixed tabular features and a
