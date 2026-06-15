@@ -196,6 +196,27 @@ The best public submission is also the best private one: the year-weighted,
 honestly-validated optimisation transferred faithfully to the hidden split
 (private ≈ public + ~0.85, a stable offset with the ranking preserved).
 
+**Model comparison (RMSE).** All six base models were evaluated under 5-fold
+cross-validation with year-weighted MSE. The chart ranks them by out-of-fold
+RMSE, making it straightforward to see which families contribute unique signal
+and which are redundant before stacking.
+
+![Model RMSE comparison across base learners](figures/07_model_comparison.png)
+
+**Cross-validation stability.** The heatmap shows each model's fold-level RMSE,
+revealing whether a model's average performance is driven by one lucky fold or
+is genuinely consistent across the five splits. Stable models (low row variance)
+are preferred stack members.
+
+![CV fold-level RMSE heatmap](figures/08_cv_heatmap.png)
+
+**Best model: OOF predictions vs actuals.** The scatter plot of out-of-fold
+predictions against ground-truth scores for the best single model illustrates
+where residual error concentrates — particularly near the censoring boundary
+at 100, motivating the two-part hurdle model described in §5.2.
+
+![Best model OOF predictions vs actuals](figures/09_best_model_oof.png)
+
 ---
 
 ## 7. Engineering principles
