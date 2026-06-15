@@ -68,7 +68,7 @@ no signal; which directly shaped the importance weighted feature engineering.
 ![Top correlations with the target](figures/03_correlation.png)
 ![Permutation feature importance](figures/04_importance.png)
 
-**Mentor-feedback text signal.** The free-text `mentor_feedback_text` column
+**Mentor feedback text signal.** The free text `mentor_feedback_text` column
 (Turkish, ~274 chars on average) was evaluated in isolation using a TF-IDF
 vectoriser (unigrams + bigrams, 20 k features) paired with a Ridge regression
 meta learner in a 5 fold cross validation. The text alone explains **36 % of
@@ -150,7 +150,7 @@ same code path serves a 5-minute sanity check and the full run.
    tuned with Optuna and given a model appropriate missing value strategy
    (native NaN handling for the trees; imputation for the others).
 4. **Distribution-shift correction** : all metrics, the HPO objective, and the
-   stacker optimise a **year-weighted MSE**: each row is weighted by the
+   stacker optimise a **year weighted MSE**: each row is weighted by the
    density ratio `P_test(year) / P_train(year)`. This made the offline score a
    faithful proxy for the leaderboard (validated to ±0.15).
 5. **Stacking with an honest referee** : base out of fold predictions are
@@ -165,19 +165,19 @@ statistically significant gain. Their measured contributions:
 
 | Technique | Idea | Effect |
 |---|---|---|
-| **Two-part (hurdle) model** | predict `(1−p)·E[y\|y<100] + p·100`, with an isotonically-calibrated censoring classifier `p` | handles the spike at 100 that single loss regression bends toward |
-| **TabPFN column** | a transformer pre-trained on synthetic tabular data, added as a decorrelated ensemble member | **largest single gain** (LB −0.5); over-delivered on the private split |
+| **Two-part (hurdle) model** | predict `(1−p)·E[y\|y<100] + p·100`, with an isotonically calibrated censoring classifier `p` | handles the spike at 100 that single loss regression bends toward |
+| **TabPFN column** | a transformer pretrained on synthetic tabular data, added as a decorrelated ensemble member | **largest single gain** (LB −0.5); over delivered on the private split |
 | **Fine tuned BERTurk** | a Turkish BERT regression head on the mentor text | text only R² 0.36→0.57; small but real in the stack |
 | **Model specific feature pruning** | top-K permutation ranked features | helps noise sensitive models (NN −1.9 MSE) but **not** robust GBDTs |
 
 ### 5.3 What did *not* work (recorded honestly)
 
-Importance weighted base training, blanket column deletion, pseudo-labeling,
+Importance weighted base training, blanket column deletion, pseudo labeling,
 naive top-K feature selection for GBDTs, additional TabPFN/NN ensemble members,
 and FT-Transformer were each tried and **rejected by the referee** : a
-flexible model can memorise the training set (in-sample R² 0.996) yet generalise
+flexible model can memorise the training set (in sample R² 0.996) yet generalise
 to only R² ≈ 0.68, so the remaining error is largely irreducible label noise
-(near-identical students differ by ~13 points). Every model family contributes
+(near identical students differ by ~13 points). Every model family contributes
 exactly **one** useful stack column.
 
 ---
@@ -197,7 +197,7 @@ honestly validated optimisation transferred faithfully to the hidden split
 (private ≈ public + ~0.85, a stable offset with the ranking preserved).
 
 **Model comparison (RMSE).** All six base models were evaluated under a 5 fold
-cross validation with year-weighted MSE. The chart ranks them by out of fold
+cross validation with year weighted MSE. The chart ranks them by out of fold
 RMSE, making it straightforward to see which families contribute unique signal
 and which are redundant before stacking.
 
@@ -222,7 +222,7 @@ at 100, motivating the two part hurdle model described in §5.2.
 ## 7. Engineering principles
 
 - **Honest validation above all** : every decision is gated by an out of fold,
-  shift-weighted, paired significance test; nothing ships on an in sample gain.
+  shift weighted, paired significance test; nothing ships on an in sample gain.
 - **Reproducibility** : a single random seed drives folds, models, the Optuna
   sampler, and torch; `inference.py` reproduces the submission from saved
   artifacts.
@@ -233,10 +233,10 @@ at 100, motivating the two part hurdle model described in §5.2.
 
 The generalisable signal ceiling for these features is R² ≈ 0.68; the solution
 sits at ~0.69. Reaching the very top of the leaderboard would require signal
-outside the provided features (e.g. an insight into the synthetic data-
+outside the provided features (e.g. an insight into the synthetic data 
 generating process), not additional modelling on the given inputs.
 
 ---
 
 *Built with Python, scikit-learn, CatBoost / LightGBM / XGBoost, PyTorch,
-sentence-transformers, TabPFN, and Optuna.*
+sentence transformers, TabPFN, and Optuna.*
