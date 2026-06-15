@@ -10,7 +10,7 @@ that each target a specific, empirically identified property of the data.
 
 **Final result:** private leaderboard **83.75** / public **82.89** MSE
 (baseline "predict the mean" ≈ 230.6; i.e. **R² ≈ 0.69** on the true,
-held-out private split).
+held out private split).
 
 ---
 
@@ -20,17 +20,17 @@ held-out private split).
 - **Rows:** 10,000 train / 10,000 test; ~45 predictors.
 - **Predictor families:** academic (cgpa, attendance, exam scores), technical
   skills (coding, SQL, ML, cloud, …), experience (internships, projects),
-  portfolio (GitHub, LinkedIn, CV), interview and soft-skill scores, plus
+  portfolio (GitHub, LinkedIn, CV), interview and soft skill scores, plus
   categoricals (department, university tier, target role) and one Turkish
-  free-text column, `mentor_feedback_text`.
+  free text column, `mentor_feedback_text`.
 - **Three properties that shaped every modelling decision** (see `eda.py`):
-  1. **Upper censoring** — the target is capped at 100 and ~7.7 % of rows sit
+  1. **Upper censoring** : the target is capped at 100 and ~7.7 % of rows sit
      at exactly 100 (a ceiling effect, analogous to an assay saturating at its
      limit of detection).
-  2. **Distribution shift** — the test set over-samples recent application
+  2. **Distribution shift** : the test set over samples recent application
      years (2024–2026), where the target is lower and noisier
      (adversarial train-vs-test AUC ≈ 0.64).
-  3. **Informative missingness** — missing values (e.g. no GitHub profile)
+  3. **Informative missingness** : missing values (e.g. no GitHub profile)
      correlate with a lower target, so *missingness itself is signal*.
 
 ---
@@ -41,9 +41,9 @@ Reproducible via `python eda.py` (writes to `figures/`). The analysis is
 deliberately organised around the three data properties above, because each one
 dictated a specific modelling choice.
 
-**Target distribution & temporal drift.** The outcome is left-skewed with a
+**Target distribution & temporal drift.** The outcome is left skewed with a
 hard ceiling at 100; recent application years have a lower, noisier target.
-This motivated the two-part (hurdle) model and the year-weighted objective.
+This motivated the two part (hurdle) model and the year-weighted objective.
 
 ![Target distribution and drift by year](figures/01_target.png)
 
